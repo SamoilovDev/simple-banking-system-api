@@ -33,7 +33,7 @@ public class Database {
         }
     }
 
-    public static void addNewAccount(String number, String pin) throws SQLException {
+    public static void addNewAccount(String number, String pin) throws SQLException { 
         String statement = "INSERT INTO card (id, number, pin)" +
                 " VALUES (?, ?, ?)";
         preparedStatement = connection.prepareStatement(statement);
@@ -53,7 +53,7 @@ public class Database {
         preparedStatement.executeUpdate();
     }
 
-    public static int getLastID() throws SQLException {
+    public static int getLastID() throws SQLException { // get last ID from database
         ResultSet result = table.executeQuery("SELECT MAX(id) FROM card;");
         return result.getInt("MAX(id)");
     }
@@ -65,7 +65,7 @@ public class Database {
         return  result.getInt("balance");
     }
 
-    public static void addIncome(int amount, int id) throws SQLException {
+    public static void addIncome(int amount, int id) throws SQLException { // add income money to the balance
         String statement = "UPDATE card " +
                 "SET balance = balance + ?" +
                 "WHERE id = ?";
@@ -83,7 +83,7 @@ public class Database {
         return result.next();
     }
 
-    public static boolean isValidData(String numberOfCard, String pin) throws SQLException {
+    public static boolean isValidData(String numberOfCard, String pin) throws SQLException { // checks for the similarity of the pincode and card number
         ResultSet result = table.executeQuery("SELECT * FROM card " +
                 "WHERE number = '" + numberOfCard + "' AND pin = '" + pin + "';");
         return result.next();
