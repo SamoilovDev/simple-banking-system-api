@@ -36,7 +36,7 @@ public class MainMechanisms {
         return newPin.toString();
     }
 
-    protected static int lastNumberToLuhnAlgorithm(String[] firstFifteen) {
+    protected static int lastNumberToLuhnAlgorithm(String[] firstFifteen) { // adds the last number according to Luhn's algorithm
         int[] numbers = new int[firstFifteen.length];
 
         for (int i = 1; i <= firstFifteen.length; i++) {
@@ -50,7 +50,7 @@ public class MainMechanisms {
         } else return 0;
     }
 
-    protected static boolean isNumberCreatedByLuhn(String number) {
+    protected static boolean isNumberCreatedByLuhn(String number) { // сhecking the card number for the Luhn algorithm
         String[] stringNumbersOfCard = number.split("");
         int lastNum = Integer.parseInt(stringNumbersOfCard[stringNumbersOfCard.length - 1]);
         int sumByLuhn = 0;
