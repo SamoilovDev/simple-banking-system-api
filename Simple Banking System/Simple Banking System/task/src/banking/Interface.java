@@ -7,7 +7,7 @@ public enum Interface {
 
     MENU {
         @Override
-        public Interface action() throws SQLException {
+        protected Interface action() throws SQLException {
             if (USER.isLogged()) {
                 System.out.println("""
                         1. Balance
@@ -44,7 +44,7 @@ public enum Interface {
 
     ERROR {
         @Override
-        public Interface action() throws SQLException {
+        protected Interface action() throws SQLException {
             System.out.println("Wrong number of action!");
             return MENU.action();
         }
@@ -52,7 +52,7 @@ public enum Interface {
 
     CREATE {
         @Override
-        public Interface action() throws SQLException {
+        protected Interface action() throws SQLException {
             MainMechanisms.createNewAccount();
             USER.setID(Database.getLastID());
 
@@ -72,7 +72,7 @@ public enum Interface {
 
     DELETE {
         @Override
-        public Interface action() throws SQLException {
+        protected Interface action() throws SQLException {
             Database.deleteAccount(USER.getID());
             USER.setLogged(false);
             System.out.println("The account has been closed!");
@@ -82,7 +82,7 @@ public enum Interface {
 
     LOG_IN {
         @Override
-        public Interface action() throws SQLException {
+        protected Interface action() throws SQLException {
             System.out.println("Enter your card number:");
             String numberOfCardToLogIn = SCANNER.next();
 
@@ -109,7 +109,7 @@ public enum Interface {
 
     LOG_OUT {
         @Override
-        public Interface action() throws SQLException {
+        protected Interface action() throws SQLException {
             System.out.println("You have successfully logged out!");
             USER.setLogged(false);
             return MENU.action();
@@ -118,7 +118,7 @@ public enum Interface {
 
     BALANCE {
         @Override
-        public Interface action() throws SQLException {
+        protected Interface action() throws SQLException {
             System.out.println("Balance: " + Database.getBalanceByID(USER.getID()));
             return MENU.action();
         }
@@ -126,7 +126,7 @@ public enum Interface {
 
     TRANSFER {
         @Override
-        public Interface action() throws SQLException {
+        protected Interface action() throws SQLException {
             System.out.println("""
                     Transfer
                     Enter card number:""");
@@ -157,7 +157,7 @@ public enum Interface {
 
     ADD_INCOME {
         @Override
-        public Interface action() throws SQLException {
+        protected Interface action() throws SQLException {
             System.out.println("Enter income:");
             int amount = SCANNER.nextInt();
 
@@ -174,7 +174,7 @@ public enum Interface {
 
     WITHDRAW {
         @Override
-        public Interface action() throws SQLException {
+        protected Interface action() throws SQLException {
             System.out.println("Enter amount of withdraw:");
             int amount = SCANNER.nextInt();
 
@@ -193,7 +193,7 @@ public enum Interface {
 
     EXIT {
         @Override
-        public Interface action() throws SQLException {
+        protected Interface action() throws SQLException {
             System.out.println("Bye!");
             Database.connection.close();
             return EXIT;
@@ -204,7 +204,7 @@ public enum Interface {
 
     private static final Main USER = new Main();
 
-    public abstract Interface action() throws SQLException;
+    protected abstract Interface action() throws SQLException;
 
 
 }

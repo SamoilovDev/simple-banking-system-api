@@ -6,15 +6,15 @@ import java.sql.*;
 
 public class Database {
 
-    static SQLiteDataSource dataSource = new SQLiteDataSource();
+    private static SQLiteDataSource dataSource = new SQLiteDataSource();
 
-    static Connection connection;
+    protected static Connection connection;
 
-    static Statement table;
+    private static Statement table;
 
-    static PreparedStatement preparedStatement;
+    private static PreparedStatement preparedStatement;
 
-    public static void createDatabaseSQLite(String urlOfDatabase) {
+    static void createDatabaseSQLite(String urlOfDatabase) {
 
         dataSource.setUrl(urlOfDatabase);
 
