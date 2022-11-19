@@ -8,9 +8,9 @@ import java.util.Random;
 
 public class MainMechanisms {
 
-    protected static Random random = new Random();
+    private static Random random = new Random();
 
-    public static void createNewAccount() throws SQLException {
+    protected static void createNewAccount() throws SQLException {
         StringBuilder newNumberOfCard = new StringBuilder();
 
         do {
