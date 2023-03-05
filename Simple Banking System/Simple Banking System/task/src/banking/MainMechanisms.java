@@ -3,23 +3,26 @@ package banking;
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
 import java.sql.Savepoint;
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.List;
 import java.util.Random;
+import java.util.concurrent.atomic.AtomicInteger;
 
 public class MainMechanisms {
 
-    private static Random random = new Random();
+    public static final Random RANDOM = new Random();
 
-    protected static void createNewAccount() throws SQLException {
+    public static void createNewAccount() throws SQLException {
         StringBuilder newNumberOfCard = new StringBuilder();
 
         do {
             newNumberOfCard.append("400000");
+            for (int i = 1; i < 10; i++) newNumberOfCard.append(RANDOM.nextInt(10));
 
-            for (int i = 1; i < 10; i++) newNumberOfCard.append(random.nextInt(10));
-
-            String[] firstFifteen = String.valueOf(newNumberOfCard).split("");
-            newNumberOfCard.append(lastNumberToLuhnAlgorithm(firstFifteen));
+            newNumberOfCard.append(
+                    lastNumberToLuhnAlgorithm(String.valueOf(newNumberOfCard).split(""))
+            );
 
         } while (Database.isNumberOfCardExists(newNumberOfCard.toString()));
 
@@ -27,68 +30,47 @@ public class MainMechanisms {
 
     }
 
-    protected static String createNewCardPin() {
+    public static String createNewCardPin() {
         StringBuilder newPin = new StringBuilder();
+
         for (int i = 1; i <= 4; i++) {
-            newPin.append(random.nextInt(10));
+            newPin.append(RANDOM.nextInt(10));
         }
 
         return newPin.toString();
     }
 
-    protected static int lastNumberToLuhnAlgorithm(String[] firstFifteen) { // adds the last number according to Luhn's algorithm
-        int[] numbers = new int[firstFifteen.length];
+    public static int lastNumberToLuhnAlgorithm(String[] firstFifteen) { // adds the last number according to Luhn's algorithm
+        int sumByLuhn = getSumByLuhnAlgorithm(List.of(firstFifteen));
 
-        for (int i = 1; i <= firstFifteen.length; i++) {
-            numbers[i - 1] = Integer.parseInt(firstFifteen[i - 1]);
-            if (i % 2 != 0) numbers[i - 1] *= 2;
-            if (numbers[i - 1] > 9) numbers[i - 1] -= 9;
-        }
-
-        if (Arrays.stream(numbers).sum() % 10 != 0) {
-            return  10 - (Arrays.stream(numbers).sum() % 10);
-        } else return 0;
+        return sumByLuhn % 10 != 0
+                ? 10 - (sumByLuhn % 10)
+                : 0;
     }
 
-    protected static boolean isNumberCreatedByLuhn(String number) { // сhecking the card number for the Luhn algorithm
-        String[] stringNumbersOfCard = number.split("");
-        int lastNum = Integer.parseInt(stringNumbersOfCard[stringNumbersOfCard.length - 1]);
-        int sumByLuhn = 0;
+    public static boolean isNumberCreatedByLuhn(String number) { // check the card number for the Luhn algorithm
+        List<String> stringNumbersOfCard = new ArrayList<>(List.of(number.split("")));
+        int lastNum = Integer.parseInt(
+                stringNumbersOfCard.remove(stringNumbersOfCard.size() - 1)
+        );
 
-        for (int i = 1; i < stringNumbersOfCard.length; i++) {
-            int num = Integer.parseInt(stringNumbersOfCard[i - 1]);
-            if (i % 2 != 0) num *= 2;
-            if (num > 9) num -= 9;
-            sumByLuhn += num;
-        }
-
-        return  (sumByLuhn + lastNum) % 10 == 0;
+        return (getSumByLuhnAlgorithm(stringNumbersOfCard) + lastNum) % 10 == 0;
     }
 
-    protected static void moneyTransfer(int idOfAccountFROM, String numberOfCardTO, int moneyToTransfer) throws SQLException {
-        String statement = "UPDATE card " +
-                "SET balance = balance + ? " +
-                "WHERE id = ?";
-        Savepoint savepoint = Database.connection.setSavepoint();
-        try {
-            Database.connection.setAutoCommit(false);
+    private static Integer getSumByLuhnAlgorithm(List<String> stringNums) {
+        AtomicInteger i = new AtomicInteger(0);
+        AtomicInteger sumByLuhn = new AtomicInteger(0);
 
-            PreparedStatement transferStatement = Database.connection.prepareStatement(statement);
+        stringNums.stream()
+                .map(Integer::parseInt)
+                .forEachOrdered(integer -> {
+                    integer = i.incrementAndGet() % 2 != 0 ? integer * 2 : integer;
+                    integer = integer > 9 ? integer - 9 : integer;
+                    sumByLuhn.addAndGet(integer);
+                });
 
-            transferStatement.setInt(1, -moneyToTransfer);
-            transferStatement.setInt(2, idOfAccountFROM);
-            transferStatement.executeUpdate();
-
-            transferStatement.setInt(1, moneyToTransfer);
-            transferStatement.setInt(2, Database.getIdByNumberOfCard(numberOfCardTO));
-            transferStatement.executeUpdate();
-
-            Database.connection.commit();
-            Database.connection.setAutoCommit(true);
-        } catch (SQLException ex) {
-            ex.printStackTrace();
-            Database.connection.rollback(savepoint);
-        }
+        return sumByLuhn.get();
     }
+
 }
 

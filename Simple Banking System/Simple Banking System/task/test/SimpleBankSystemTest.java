@@ -3,11 +3,8 @@ import org.hyperskill.hstest.exception.outcomes.WrongAnswer;
 import org.hyperskill.hstest.stage.StageTest;
 import org.hyperskill.hstest.testcase.CheckResult;
 import org.hyperskill.hstest.testing.TestedProgram;
-import org.junit.AfterClass;
-import org.junit.BeforeClass;
 
 import java.io.File;
-import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -21,11 +18,15 @@ import java.util.regex.Pattern;
 public class SimpleBankSystemTest extends StageTest<String> {
 
     private static final String databaseFileName = "card.s3db";
+
     private static final String tempDatabaseFileName = "tempDatabase.s3db";
+
     private static final String[] args = {"-fileName", databaseFileName};
+
     private static final Map<String, String> correctData = new HashMap<>();
 
     private static final Pattern cardNumberPattern = Pattern.compile("^400000\\d{10}$", Pattern.MULTILINE);
+
     private static final Pattern pinPattern = Pattern.compile("^\\d{4}$", Pattern.MULTILINE);
 
     private static Connection connection;

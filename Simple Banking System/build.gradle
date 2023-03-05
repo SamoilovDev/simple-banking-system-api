@@ -31,6 +31,8 @@ subprojects {
     dependencies {
         implementation group:'org.xerial', name:'sqlite-jdbc', version:'3.36.0'
         testImplementation 'com.github.hyperskill:hs-test:release-SNAPSHOT'
+        compileOnly 'org.projectlombok:lombok:1.18.20'
+        annotationProcessor 'org.projectlombok:lombok:1.18.20'
     }
 
     configurations.all {

@@ -6,9 +6,9 @@ import java.sql.*;
 
 public class Database {
 
-    private static SQLiteDataSource dataSource = new SQLiteDataSource();
+    private static final SQLiteDataSource dataSource = new SQLiteDataSource();
 
-    protected static Connection connection;
+    static Connection connection;
 
     private static Statement table;
 
@@ -21,6 +21,7 @@ public class Database {
         try {
             connection = dataSource.getConnection();
             table = connection.createStatement();
+
             table.executeUpdate("""
                     CREATE TABLE IF NOT EXISTS card(
                         id INT NOT NULL,
@@ -28,8 +29,41 @@ public class Database {
                         pin VARCHAR(4),
                         balance INT NOT NULL DEFAULT 0
                     );""");
+
+        } catch (SQLException ex) {
+
+            try {
+                connection.close();
+            } catch (SQLException ignored) {}
+
+            ex.printStackTrace();
+        }
+    }
+
+
+
+    public static void moneyTransfer(int idOfAccountFROM, String numberOfCardTO, int moneyToTransfer) throws SQLException {
+        String statement = "UPDATE card SET balance = balance + ? WHERE id = ?";
+        Savepoint savepoint = Database.connection.setSavepoint();
+
+        try {
+            Database.connection.setAutoCommit(false);
+
+            PreparedStatement transferStatement = Database.connection.prepareStatement(statement);
+
+            transferStatement.setInt(1, -moneyToTransfer);
+            transferStatement.setInt(2, idOfAccountFROM);
+            transferStatement.executeUpdate();
+
+            transferStatement.setInt(1,  moneyToTransfer);
+            transferStatement.setInt(2, Database.getIdByNumberOfCard(numberOfCardTO));
+            transferStatement.executeUpdate();
+
+            Database.connection.commit();
+            Database.connection.setAutoCommit(true);
         } catch (SQLException ex) {
             ex.printStackTrace();
+            Database.connection.rollback(savepoint);
         }
     }
 
@@ -46,9 +80,9 @@ public class Database {
     }
 
     public static void deleteAccount(int id) throws SQLException {
-        String statement = "DELETE FROM card " +
-                "WHERE id = ?";
+        String statement = "DELETE FROM card WHERE id = ?";
         preparedStatement = connection.prepareStatement(statement);
+
         preparedStatement.setInt(1, id);
         preparedStatement.executeUpdate();
     }
@@ -59,16 +93,12 @@ public class Database {
     }
 
     public static int getBalanceByID(int id) throws SQLException {
-        ResultSet result = table.executeQuery("SELECT balance " +
-                "FROM card " +
-                "WHERE id = " + id);
-        return  result.getInt("balance");
+        ResultSet result = table.executeQuery("SELECT balance FROM card WHERE id = " + id);
+        return result.getInt("balance");
     }
 
     public static void addIncome(int amount, int id) throws SQLException { // add income money to the balance
-        String statement = "UPDATE card " +
-                "SET balance = balance + ?" +
-                "WHERE id = ?";
+        String statement = "UPDATE card SET balance = balance + ? WHERE id = ?";
         preparedStatement = connection.prepareStatement(statement);
 
         preparedStatement.setInt(1, amount);
@@ -78,26 +108,35 @@ public class Database {
     }
 
     public static boolean isNumberOfCardExists(String numberOfCard) throws SQLException {
-        ResultSet result = table.executeQuery("SELECT * FROM card" +
-                " WHERE number = '" + numberOfCard + "';");
-        return result.next();
+        if (! numberOfCard.matches("^[\\d\\s]+$")) return false;
+
+        String statement = "SELECT * FROM card WHERE number = ?";
+        preparedStatement = connection.prepareStatement(statement);
+
+        preparedStatement.setString(1, numberOfCard);
+
+        return preparedStatement.executeQuery().next();
     }
 
     public static boolean isValidData(String numberOfCard, String pin) throws SQLException { // checks for the similarity of the pincode and card number
+        if (!numberOfCard.matches("^[\\d\\s]+$") || !pin.matches("^\\d+$")) return false;
         ResultSet result = table.executeQuery("SELECT * FROM card " +
-                "WHERE number = '" + numberOfCard + "' AND pin = '" + pin + "';");
+                "WHERE number = '" + numberOfCard + "' AND pin = '" + pin + "'");
         return result.next();
     }
 
     public static String getNumberOfCardByID(int id) throws SQLException {
-        ResultSet result = table.executeQuery("SELECT * FROM card" +
-                " WHERE id = " + id);
-        return  result.getString("number");
+        String statement = "SELECT * FROM card WHERE id = ?";
+
+        preparedStatement = connection.prepareStatement(statement);
+        preparedStatement.setInt(1, id);
+
+        return preparedStatement.executeQuery().getString("number");
     }
 
     public static int getIdByNumberOfCard(String numberOfCard) throws SQLException {
-        ResultSet result = table.executeQuery("SELECT id FROM card" +
-                " WHERE number = " + numberOfCard);
+        if (! numberOfCard.matches("^[\\d\\s]+$")) return 0;
+        ResultSet result = table.executeQuery("SELECT id FROM card WHERE number = " + numberOfCard);
         return  result.getInt("id");
     }
 
